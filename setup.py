@@ -15,7 +15,7 @@ setup(
     url='http://www.pulpproject.org/',
     install_requires=requirements,
     include_package_data=True,
-    packages=['pulp_example'],
+    packages=['pulp_example', 'pulp_example.app'],
     entry_points={
         'pulpcore.plugin': [
             'pulp_example = pulp_example:default_app_config',
