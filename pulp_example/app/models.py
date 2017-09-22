@@ -612,11 +612,8 @@ class ExampleAsyncIOImporter(Importer):
         """
         inventory = self._fetch_inventory()
         download = self.get_asyncio_downloader(self.feed_url)
-        loop = asyncio.get_event_loop()
-        done_this_time, downloads_not_done = loop.run_until_complete(asyncio.wait([download]))
-        for task in done_this_time:
-            download_result = task.result()
-            self.manifest_path = download_result.path
+        download_result = download.fetch()
+        self.manifest_path = download_result.path
         remote = set()
         for entry in self.read_manifest():
             key = Key(path=entry['path'], digest=entry['digest'])
