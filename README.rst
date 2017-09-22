@@ -69,7 +69,7 @@ repository.
 
 An ``example-asyncio`` importer can be added to the repository ``foo``:
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-asyncio/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople .org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
+``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-asyncio/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
 
 .. code:: json
 
@@ -80,7 +80,7 @@ An ``example-asyncio`` importer can be added to the repository ``foo``:
 
 An ``example-futures`` importer can be added to the repository ``foo``:
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-futures/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople .org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
+``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-futures/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
 
 .. code:: json
 
