@@ -5,14 +5,25 @@ This is the ``pulp_example`` Plugin for `Pulp Project
 3.0+ <https://pypi.python.org/pypi/pulpcore/>`__. It is an example of
 how to use the Pulp Plugin API to add a custom content type to Pulp.
 
-All REST API examples bellow use `httpie <https://httpie.org/doc>`__ to
-perform the requests.
+All REST API examples below use `httpie <https://httpie.org/doc>`__ to perform the requests. The
+``httpie`` commands below assume that the user executing the commands has a ``.netrc`` file in
+the home directory. The ``.netrc`` should have the following configuration:
+
+.. code-block::
+
+    machine localhost
+    login admin
+    password admin
+
+If you configured the ``admin`` user with a different password, adjust the configuration
+accordingly. If you prefer to specify the username and password with each request, please see
+``httpie`` documentation on how to do that.
 
 Install ``pulpcore``
 --------------------
 
 Follow the `installation
-instructions <docs.pulpproject.org/en/3.0/nightly/installation/instructions.html>`__
+instructions <https://docs.pulpproject.org/en/3.0/nightly/installation/instructions.html>`__
 provided with pulpcore.
 
 Install ``pulp_example`` plugin
