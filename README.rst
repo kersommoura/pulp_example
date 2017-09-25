@@ -17,7 +17,8 @@ the home directory. The ``.netrc`` should have the following configuration:
 
 If you configured the ``admin`` user with a different password, adjust the configuration
 accordingly. If you prefer to specify the username and password with each request, please see
-``httpie`` documentation on how to do that.
+``httpie`` documentation on how to do that. Also, the file permissions on ``.netrc`` should be 600
+(readable/writable by owner only).
 
 Install ``pulpcore``
 --------------------
