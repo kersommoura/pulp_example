@@ -27,11 +27,8 @@ Follow the `installation
 instructions <https://docs.pulpproject.org/en/3.0/nightly/installation/instructions.html>`__
 provided with pulpcore.
 
-Install ``pulp_example`` plugin
--------------------------------
-
-From source
-~~~~~~~~~~~
+Install ``pulp_example`` from source
+------------------------------------
 
 1)  sudo -u pulp -i
 2)  source ~/pulpvenv/bin/activate
@@ -44,8 +41,8 @@ From source
 9)  sudo systemctl restart pulp\_worker@1
 10) sudo systemctl restart pulp\_worker@2
 
-Install from PyPI
-~~~~~~~~~~~~~~~~~
+Install ``pulp_example`` from PyPI
+----------------------------------
 
 1) sudo -u pulp -i
 2) source ~/pulpvenv/bin/activate
