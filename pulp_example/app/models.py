@@ -1,4 +1,3 @@
-import asyncio
 import os
 from collections import namedtuple
 from gettext import gettext as _
@@ -107,12 +106,6 @@ class ExampleContent(Content):
             'digest'
         )
 
-    @classmethod
-    def natural_key_fields(cls):
-        for unique in cls._meta.unique_together:
-            for field in unique:
-                yield field
-
 
 class ExamplePublisher(Publisher):
     """
@@ -204,7 +197,7 @@ class ExampleFuturesImporter(Importer):
         q_set = ExampleContent.objects.filter(repositories=self.repository)
         if not self.is_deferred:
             q_set = q_set.filter(contentartifact__artifact__isnull=False)
-        q_set = q_set.only(*[field for field in ExampleContent.natural_key_fields()])
+        q_set = q_set.only(*ExampleContent.natural_key_fields())
         for content in (c.cast() for c in ExampleContent.objects.paginated_qs_results(q_set)):
             key = Key(path=content.path, digest=content.digest)
             inventory.add(key)
@@ -291,7 +284,7 @@ class ExampleFuturesImporter(Importer):
         delta = self._find_delta()
 
         # Find all content being added that already exists in Pulp and associate with repository.
-        fields = {f for f in ExampleContent.natural_key_fields()}
+        fields = set(ExampleContent.natural_key_fields())
         if not self.is_deferred:
             # Filter out any content that still needs to have artifacts downloaded
             ready_to_associate = ExampleContent.objects.find_by_unit_key(delta.additions
@@ -549,7 +542,7 @@ class ExampleAsyncIOImporter(Importer):
         q_set = ExampleContent.objects.filter(repositories=self.repository)
         if not self.is_deferred:
             q_set = q_set.filter(contentartifact__artifact__isnull=False)
-        q_set = q_set.only(*[field for field in ExampleContent.natural_key_fields()])
+        q_set = q_set.only(*ExampleContent.natural_key_fields())
         for content in (c.cast() for c in ExampleContent.objects.paginated_qs_results(q_set)):
             key = Key(path=content.path, digest=content.digest)
             inventory.add(key)
@@ -633,7 +626,7 @@ class ExampleAsyncIOImporter(Importer):
         # associated with the content
         delta = self._find_delta()
         # Find all content being added that already exists in Pulp and associate with repository.
-        fields = {f for f in ExampleContent.natural_key_fields()}
+        fields = set(ExampleContent.natural_key_fields())
         if not self.is_deferred:
             # Filter out any content that still needs to have artifacts downloaded
             ready_to_associate = ExampleContent.objects.find_by_unit_key(delta.additions).only(
