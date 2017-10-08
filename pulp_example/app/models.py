@@ -469,7 +469,7 @@ class ExampleFuturesImporter(Importer):
             try:
                 with transaction.atomic():
                     content.save()
-                    log.warning(_("Created content"))
+                    log.debug(_("Created content"))
             except IntegrityError:
                 key = {f: getattr(content, f) for f in
                        content.natural_key_fields()}
@@ -481,7 +481,7 @@ class ExampleFuturesImporter(Importer):
                         repository=self.repository,
                         content=content)
                     association.save()
-                    log.warning(_("Created association with repository"))
+                    log.debug(_("Created association with repository"))
             except IntegrityError:
                 # Content unit is already associated with the repository
                 pass
@@ -718,7 +718,7 @@ class ExampleAsyncIOImporter(Importer):
                 if not download_error:
                     self._create_and_associate_content(group)
                     bar.increment()
-                    log.warning('content_unit = {0}'.format(group.id))
+                    log.debug('content_unit = {0}'.format(group.id))
 
     def next_group(self, additions):
         """
