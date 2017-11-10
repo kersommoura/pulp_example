@@ -483,14 +483,12 @@ class ExampleFuturesImporter(Importer):
                 if download_result:
                     # Create artifact that was downloaded and deal with race condition
                     path = download_result.pop('path')
-                    with File(open(path, mode='rb')) as file:
-                        try:
-                            with transaction.atomic():
-                                artifact = Artifact(file=file,
-                                                    **download_result)
-                                artifact.save()
-                        except IntegrityError:
-                            artifact = Artifact.objects.get(sha256=download_result['sha256'])
+                    try:
+                        with transaction.atomic():
+                            artifact = Artifact(file=path, **download_result)
+                            artifact.save()
+                    except IntegrityError:
+                        artifact = Artifact.objects.get(sha256=download_result['sha256'])
                 else:
                     # Try to find an artifact if one already exists
                     try:
@@ -596,7 +594,6 @@ class ExampleAsyncIOImporter(Importer):
         determine the set of content to be added and deleted from the
         repository.  Expressed in natural key.
         Args:
-            inventory (set): Set of existing content (natural) keys.
             mirror (bool): Faked mirror option.
                 TODO: should be replaced with something standard.
 
@@ -748,14 +745,11 @@ class ExampleAsyncIOImporter(Importer):
         Saves ExampleContent and all related models to the database.
 
         This method saves ExampleContent, ContentArtifacts, RemoteArtifacts and Artifacts to
-        the database inside a single transaction.
+        the database and adds ExampleContent to repository inside a single transaction.
 
         Args:
-            content (:class:`pulp_example.app.models.ExampleContent`): An instance of
-                ExampleContent to be saved to the database.
-            deferred_artifacts (dict): A dictionary where keys are instances of
-                :class:`pulpcore.plugin.models.RemoteArtifact` and values are dictionaries that
-                contain information about files downloaded using the RemoteArtifacts.
+            group (:class:`~pulpcore.plugin.download.asyncio.Group`): A group of
+                :class:`~pulpcore.plugin.models.RemoteArtifact` objects to process.
         """
 
         # Save Artifacts, ContentArtifacts, RemoteArtifacts, and Content in a transaction
@@ -783,17 +777,16 @@ class ExampleAsyncIOImporter(Importer):
                 pass
             for url in group.urls:
                 if group.downloaded_files:
+                    downloaded_file = group.downloaded_files[url]
                     # Create artifact that was downloaded and deal with race condition
-                    with File(open(group.downloaded_files[url].path, mode='rb')) as file:
-                        try:
-                            with transaction.atomic():
-                                artifact = Artifact(file=file,
-                                                    **group.downloaded_files[
-                                                        url].artifact_attributes)
-                                artifact.save()
-                        except IntegrityError:
-                            artifact = Artifact.objects.get(sha256=group.downloaded_files[
-                                url].artifact_attributes['sha256'])
+                    try:
+                        with transaction.atomic():
+                            artifact = Artifact(file=downloaded_file.path,
+                                                **downloaded_file.artifact_attributes)
+                            artifact.save()
+                    except IntegrityError:
+                        artifact = Artifact.objects.get(
+                            sha256=downloaded_file.artifact_attributes['sha256'])
                 else:
                     # Try to find an artifact if one already exists
                     try:
