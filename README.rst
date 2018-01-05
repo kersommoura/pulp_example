@@ -20,6 +20,13 @@ accordingly. If you prefer to specify the username and password with each reques
 ``httpie`` documentation on how to do that. Also, the file permissions on ``.netrc`` should be 600
 (readable/writable by owner only).
 
+This documentation makes use of the `jq library <https://stedolan.github.io/jq/>`_
+to parse the json received from requests, in order to get the unique urls generated
+when objects are created. To follow this documentation as-is please install the jq
+library with:
+
+``$ sudo dnf install jq``
+
 Install ``pulpcore``
 --------------------
 
@@ -60,6 +67,15 @@ Create a repository ``foo``
 
 ``$ http POST http://localhost:8000/api/v3/repositories/ name=foo``
 
+.. code:: json
+
+    {
+        "_href": "http://localhost:8000/api/v3/repositories/8d7cd67a-9421-461f-9106-2df8e4854f5f/",
+        ...
+    }
+
+``$ export REPO_HREF=$(http :8000/api/v3/repositories/ | jq -r '.results[] | select(.name == "foo") | ._href')``
+
 Add an importer to repository ``foo``
 -------------------------------------
 
@@ -69,53 +85,41 @@ repository.
 
 An ``example-asyncio`` importer can be added to the repository ``foo``:
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-asyncio/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
+``$ http POST http://localhost:8000/api/v3/importers/example-asyncio/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST' repository=$REPO_HREF``
 
 .. code:: json
 
     {
-        "_href": "http://localhost:8000/api/v3/repositories/foo/importers/example-asyncio/bar/",
+        "_href": "http://localhost:8000/api/v3/importers/example-asyncio/$UUID/",
         ...
     }
+
+``$ export ASYNCIO_IMPORTER_HREF=$(http :8000/api/v3/importers/example-asyncio/ | jq -r '.results[] | select(.name == "bar") | ._href')``
 
 An ``example-futures`` importer can be added to the repository ``foo``:
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/importers/example-futures/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST'``
+``$ http POST http://localhost:8000/api/v3/importers/example-futures/ name='bar' download_policy='immediate' sync_mode='mirror' feed_url='https://repos.fedorapeople.org/pulp/pulp/demo_repos/test_file_repo/PULP_MANIFEST' repository=$REPO_HREF``
 
 .. code:: json
 
     {
-        "_href": "http://localhost:8000/api/v3/repositories/foo/importers/example-futures/bar/",
+        "_href": "http://localhost:8000/api/v3/importers/example-futures/$UUID/",
         ...
     }
 
-Add an ``example`` Publisher to repository ``foo``
---------------------------------------------------
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/publishers/example/ name=bar``
-
-.. code:: json
-
-    {
-        "_href": "http://localhost:8000/api/v3/repositories/foo/publishers/example/bar/",
-        ...
-    }
-
-Add a Distribution to Publisher ``bar``
----------------------------------------
-
-``$ http POST http://localhost:8000/api/v3/repositories/foo/publishers/example/bar/distributions/ name='baz' base_path='foo' auto_updated=true http=true https=true``
+``$ export FUTURES_IMPORTER_HREF=$(http :8000/api/v3/importers/example-futures/ | jq -r '.results[] | select(.name == "bar") | ._href')``
 
 Sync repository ``foo`` using importer ``bar``
 ----------------------------------------------
 
 ``example-asyncio`` importer:
 
-``http POST http://localhost:8000/api/v3/repositories/foo/importers/example-asyncio/bar/sync/``
+``$ http POST $ASYNCIO_IMPORTER_HREF'sync/'``
 
 ``example-futures`` importer:
 
-``http POST http://localhost:8000/api/v3/repositories/foo/importers/example-futures/bar/sync/``
+``$ http POST $FUTURES_IMPORTER_HREF'sync/'``
 
 Upload ``foo.tar.gz`` to Pulp
 -----------------------------
@@ -164,12 +168,27 @@ Add content to repository ``foo``
 
 ``$ http POST http://localhost:8000/api/v3/repositorycontents/ repository='http://localhost:8000/api/v3/repositories/foo/' content='http://localhost:8000/api/v3/content/example/a9578a5f-c59f-4920-9497-8d1699c112ff/'``
 
-Create a Publication using Publisher ``bar``
---------------------------------------------
+Currently there is no endpoint to manually associate content to a repository. This functionality
+will be added before pulp3 beta is released.
 
-Dispatch the Publish task
+Add an ``example`` Publisher to repository ``foo``
+--------------------------------------------------
 
-``$ http POST http://localhost:8000/api/v3/repositories/foo/publishers/example/bar/publish/``
+``$ http POST http://localhost:8000/api/v3/publishers/example/ name=bar repository=$REPO_HREF``
+
+.. code:: json
+
+    {
+        "_href": "http://localhost:8000/api/v3/publishers/example/$UUID/",
+        ...
+    }
+
+``$ export PUBLISHER_HREF=$(http :8000/api/v3/publishers/example/ | jq -r '.results[] | select(.name == "bar") | ._href')``
+
+Create a Publication for Publisher ``bar``
+------------------------------------------
+
+``$ http POST http://localhost:8000/api/v3/publications/ publisher=$PUBLISHER_HREF``
 
 .. code:: json
 
@@ -179,6 +198,15 @@ Dispatch the Publish task
             "task_id": "fd4cbecd-6c6a-4197-9cbe-4e45b0516309"
         }
     ]
+
+``$ export PUBLICATION_HREF=$(http :8000/api/v3/publications/ | jq -r --arg PUBLISHER_HREF "$PUBLISHER_HREF" '.results[] | select(.publisher==$PUBLISHER_HREF) | ._href')``
+
+
+Add a Distribution to Publisher ``bar``
+---------------------------------------
+
+``$ http POST http://localhost:8000/api/v3/distributions/ name='baz' base_path='foo' auto_updated=true http=true https=true publisher=$PUBLISHER_HREF publication=$PUBLICATION_HREF``
+
 
 Check status of a task
 ----------------------
